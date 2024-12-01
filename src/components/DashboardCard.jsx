@@ -21,7 +21,7 @@ function DashboardCard({ title, value, icon, trend, link }) {
         </div>
       </div>
       {trend && (
-        <p className={`mt-4 text-sm font-medium Ksh{trendColor}`}>
+        <p className={`mt-4 text-sm font-medium ${trendColor}`}>
           {trend}  {/* Display the trend percentage */}
         </p>
       )}

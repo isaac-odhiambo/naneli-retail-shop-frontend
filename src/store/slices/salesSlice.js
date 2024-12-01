@@ -1,4 +1,3 @@
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { createSelector } from 'reselect';  // Import createSelector from reselect
@@ -58,7 +57,65 @@ const initialState = {
   loading: false,
 };
 
-const salesSlice = createSlice({
+// Define selectSales first (before using it in createSelector)
+export const selectSales = (state) => state.sales.sales;
+
+// Create a selector for today's sales
+export const selectSalesForToday = createSelector(
+  [selectSales],  // Input selector
+  (sales) => {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    return sales.filter((sale) => {
+      const saleDate = new Date(sale.timestamp);
+      return saleDate >= startOfDay && saleDate <= endOfDay;
+    });
+  }
+);
+
+// Create a selector for this week's sales
+export const selectSalesForThisWeek = createSelector(
+  [selectSales],
+  (sales) => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today.setDate(today.getDate() - dayOfWeek));
+    startOfWeek.setHours(0, 0, 0, 0);  // Start of the week (Sunday)
+    const endOfWeek = new Date(today.setDate(today.getDate() + (6 - dayOfWeek)));  // End of the week (Saturday)
+    endOfWeek.setHours(23, 59, 59, 999); // End of the week
+    return sales.filter((sale) => {
+      const saleDate = new Date(sale.timestamp);
+      return saleDate >= startOfWeek && saleDate <= endOfWeek;
+    });
+  }
+);
+
+// Create a selector for this month's sales
+export const selectSalesForThisMonth = createSelector(
+  [selectSales],
+  (sales) => {
+    const today = new Date();
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    endOfMonth.setHours(23, 59, 59, 999);
+    return sales.filter((sale) => {
+      const saleDate = new Date(sale.timestamp);
+      return saleDate >= startOfMonth && saleDate <= endOfMonth;
+    });
+  }
+);
+
+// Helper function to calculate total sales for any filtered list of sales
+export const calculateTotalSales = (sales) => {
+  return sales.reduce((total, sale) => total + (sale.total || 0), 0).toFixed(2);
+};
+
+export const selectSalesLoading = (state) => state.sales.loading;
+export const selectSalesError = (state) => state.sales.error;
+
+export default createSlice({
   name: 'sales',
   initialState,
   reducers: {},
@@ -87,33 +144,9 @@ const salesSlice = createSlice({
         state.error = action.payload;  // Handle errors
       });
   },
-});
+}).reducer;
 
-// Selectors for accessing sales data
-export const selectSales = (state) => state.sales.sales;
-export const selectSalesLoading = (state) => state.sales.loading;
-export const selectSalesError = (state) => state.sales.error;
 
-// Create a memoized selector for today's sales using reselect
-export const selectSalesForToday = createSelector(
-  [selectSales],  // Input selector
-  (sales) => {
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
-    return sales.filter((sale) => {
-      const saleDate = new Date(sale.timestamp);
-      return saleDate >= startOfDay && saleDate <= endOfDay;
-    });
-  }
-);
-
-// Helper function to calculate total sales for any filtered list of sales
-export const calculateTotalSales = (sales) => {
-  return sales.reduce((total, sale) => total + (sale.total || 0), 0).toFixed(2);
-};
-
-export default salesSlice.reducer;
 
 // import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 // import axios from 'axios';

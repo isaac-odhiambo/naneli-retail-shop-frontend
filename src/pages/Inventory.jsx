@@ -1,8 +1,9 @@
 /** @jsxImportSource react */
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchProducts } from '../store/slices/inventorySlice';
+import { fetchProducts, createProduct, updateProductById, deleteProductById } from '../store/slices/inventorySlice';
 import InventoryCard from '../components/InventoryCard';
+import IconSearch from '../components/IconSearch';
 
 export default function Inventory() {
   const dispatch = useDispatch();
@@ -10,14 +11,44 @@ export default function Inventory() {
   const userRole = useSelector((state) => state.auth.user?.role);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [productData, setProductData] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    price: 0,
+    quantity: 0,
+    reorder_point: 0,
+    icon: ''
+  });
 
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
   const handleAddProduct = () => {
-    // Logic to handle adding a product (e.g., open modal or form)
-    console.log('Add Product Clicked');
+    if (productData.name && productData.sku && productData.category && productData.price > 0 && productData.quantity >= 0) {
+      dispatch(createProduct(productData));
+      setIsModalOpen(false);
+      setProductData({
+        name: '',
+        sku: '',
+        category: '',
+        price: 0,
+        quantity: 0,
+        reorder_point: 0,
+        icon: ''
+      });
+    }
+  };
+
+  const handleEditProduct = (product) => {
+    setProductData(product);
+    setIsModalOpen(true);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -30,13 +61,84 @@ export default function Inventory() {
         <h1 className="text-2xl font-semibold text-gray-900">Inventory</h1>
         {(userRole === 'admin' || userRole === 'manager') && (
           <button
-            onClick={handleAddProduct}
+            onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Add Product
           </button>
         )}
       </div>
+
+      {/* Product Add/Edit Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-1/3">
+            <h2 className="text-xl font-semibold mb-4">Add/Edit Product</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Product Name"
+                value={productData.name}
+                onChange={(e) => setProductData({ ...productData, name: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <input
+                type="text"
+                placeholder="SKU"
+                value={productData.sku}
+                onChange={(e) => setProductData({ ...productData, sku: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <input
+                type="text"
+                placeholder="Category"
+                value={productData.category}
+                onChange={(e) => setProductData({ ...productData, category: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <input
+                type="number"
+                placeholder="Price"
+                value={productData.price}
+                onChange={(e) => setProductData({ ...productData, price: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <input
+                type="number"
+                placeholder="Quantity"
+                value={productData.quantity}
+                onChange={(e) => setProductData({ ...productData, quantity: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <input
+                type="number"
+                placeholder="Reorder Point"
+                value={productData.reorder_point}
+                onChange={(e) => setProductData({ ...productData, reorder_point: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+              <IconSearch
+                selectedIcon={productData.icon}
+                setSelectedIcon={(icon) => setProductData({ ...productData, icon })}
+              />
+            </div>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddProduct}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+              >
+                Save Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white shadow-sm rounded-lg">
         <div className="p-6 border-b border-gray-200">
@@ -46,7 +148,7 @@ export default function Inventory() {
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-4 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
@@ -90,7 +192,7 @@ export default function Inventory() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredProducts.map((product) => (
-                      <InventoryCard key={product.id} product={product} role={userRole} />
+                      <InventoryCard key={product.id} product={product} role={userRole} onEdit={handleEditProduct} />
                     ))}
                   </tbody>
                 </table>

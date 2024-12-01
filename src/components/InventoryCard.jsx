@@ -1,31 +1,25 @@
 /** @jsxImportSource react */
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { updateProductById, deleteProductById } from '../store/slices/inventorySlice';
+import { deleteProductById } from '../store/slices/inventorySlice';
 
-// Import icons from Lucide React (or React Icons)
-import { Package, ShoppingBag, Tv, Shirt } from 'lucide-react'; // Example icons
+// Import icons dynamically based on the product's icon name (from Lucide)
+import * as Icons from 'lucide-react';
 
-export default function InventoryCard({ product, role }) {
+export default function InventoryCard({ product, role, onEdit }) {
   const dispatch = useDispatch();
 
-  // Function to get the appropriate icon based on the category
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'electronics':
-        return <Tv className="h-6 w-6 text-blue-600" />;
-      case 'clothing':
-        return <Shirt className="h-6 w-6 text-green-600" />;
-      case 'home':
-        return <Package className="h-6 w-6 text-yellow-600" />;
-      default:
-        return <Package className="h-6 w-6 text-gray-500" />;
+  // Function to get the appropriate icon based on the icon name
+  const getCategoryIcon = (iconName) => {
+    const IconComponent = Icons[iconName];
+    if (IconComponent) {
+      return <IconComponent className="h-6 w-6 text-gray-500" />;
     }
+    return <Icons.Package className="h-6 w-6 text-gray-500" />;
   };
 
-  // Handle product deletion
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete Ksh{product.name}?`)) {
+    if (window.confirm(`Are you sure you want to delete ${product.name}?`)) {
       dispatch(deleteProductById(product.id));
     }
   };
@@ -33,9 +27,8 @@ export default function InventoryCard({ product, role }) {
   return (
     <tr>
       <td className="px-6 py-4 whitespace-nowrap">
-        {/* Display category icon */}
         <div className="flex items-center">
-          {getCategoryIcon(product.category)}
+          {getCategoryIcon(product.icon)} {/* Display icon dynamically */}
           <div className="ml-3 text-sm font-medium text-gray-900">{product.name}</div>
         </div>
       </td>
@@ -46,7 +39,13 @@ export default function InventoryCard({ product, role }) {
       {role === 'admin' && (
         <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
           <button
-            onClick={() => handleDelete()}
+            onClick={() => onEdit(product)} // Edit functionality
+            className="text-blue-500 hover:text-blue-700 mx-2"
+          >
+            Edit
+          </button>
+          <button
+            onClick={handleDelete}
             className="text-red-500 hover:text-red-700 mx-2"
           >
             Delete

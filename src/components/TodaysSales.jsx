@@ -1,30 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSales, selectSalesForToday } from '../store/slices/salesSlice'; // Updated import
+import { fetchSales, selectSalesForToday, calculateTotalSales } from '../store/slices/salesSlice'; // Updated import
+import { toast } from 'react-toastify'; // Assuming you're using toast for error messages
 
 const TodaysSales = () => {
   const dispatch = useDispatch();
   const todaysSales = useSelector(selectSalesForToday); // Correct selector for today's sales
   const loading = useSelector((state) => state.sales.loading);
   const error = useSelector((state) => state.sales.error);
+  
+  const [view, setView] = useState('daily'); // State to manage the selected view (although it's only daily for now)
 
-  const [hoveredSale, setHoveredSale] = useState(null); // State to track the hovered sale for more details
+  // Calculate total sales for today
+  const totalSales = calculateTotalSales(todaysSales);
 
-  // Calculate the total sales for today
-  const totalSales = todaysSales.reduce((acc, sale) => acc + sale.total, 0).toFixed(2);
-
+  // Fetch sales when the component mounts
   useEffect(() => {
-    dispatch(fetchSales()); // Fetch all sales data when the component mounts
+    dispatch(fetchSales()); // Fetch sales data
   }, [dispatch]);
 
+  // Display errors if they occur
+  useEffect(() => {
+    if (error) {
+      toast.error(`Error: ${error}`);
+    }
+  }, [error]);
+
   return (
-    <div>
-      {loading && <p>Loading...</p>} {/* Loading indicator */}
-      {error && <p className="text-red-600">{error}</p>} {/* Error message */}
+    <div className="h-[calc(100vh-6rem)] p-6">
+      <h2 className="text-2xl font-semibold mb-4">Today's Sales</h2>
+
+      {/* Loading state */}
+      {loading && <p>Loading sales...</p>}
+
+      {/* Error state */}
+      {error && <p className="text-red-600">{error}</p>}
 
       {/* Today's Total Sales */}
       <div className="bg-white p-6 rounded shadow mb-6">
-        <h2 className="text-xl font-semibold">Today's Total Sales</h2>
+        <h3 className="text-xl font-semibold">Today's Total Sales</h3>
         <p className="text-lg font-medium text-gray-900">Ksh {totalSales}</p>
       </div>
 
@@ -45,8 +59,6 @@ const TodaysSales = () => {
                 <tr
                   key={sale.id}
                   className="hover:bg-gray-100 cursor-pointer"
-                  onMouseEnter={() => setHoveredSale(sale.id)}  // Set hovered sale on hover
-                  onMouseLeave={() => setHoveredSale(null)}  // Reset hovered sale when mouse leaves
                 >
                   <td className="px-6 py-4 text-sm text-gray-800">{sale.id}</td>
                   <td className="px-6 py-4 text-sm text-gray-800">Ksh {sale.total.toFixed(2)}</td>
@@ -55,23 +67,19 @@ const TodaysSales = () => {
                     {new Date(sale.timestamp).toLocaleString()}
                   </td>
 
-                  {/* Display additional details when hovered */}
-                  {hoveredSale === sale.id && (
+                  {/* Display additional details on hover */}
+                  {sale.products && sale.products.length > 0 && (
                     <tr className="bg-gray-50">
                       <td colSpan="4" className="px-6 py-4 text-sm text-gray-700">
                         <strong>Products Sold:</strong>
                         <div className="mt-2">
-                          {sale.products && sale.products.length > 0 ? (
-                            <ul>
-                              {sale.products.map((product, index) => (
-                                <li key={index} className="text-sm text-gray-700">
-                                  <strong>{product.name}</strong> - Quantity: {product.quantity}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p>No products recorded for this sale.</p>
-                          )}
+                          <ul>
+                            {sale.products.map((product, index) => (
+                              <li key={index} className="text-sm text-gray-700">
+                                <strong>{product.name}</strong> - Quantity: {product.quantity}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </td>
                     </tr>
@@ -80,7 +88,9 @@ const TodaysSales = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="4" className="px-6 py-4 text-sm text-gray-800 text-center">No sales recorded for today.</td>
+                <td colSpan="4" className="px-6 py-4 text-sm text-gray-800 text-center">
+                  No sales recorded for today.
+                </td>
               </tr>
             )}
           </tbody>
@@ -91,4 +101,5 @@ const TodaysSales = () => {
 };
 
 export default TodaysSales;
+
 

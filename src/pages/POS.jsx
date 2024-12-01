@@ -106,7 +106,7 @@ export default function POS() {
       setTransactionComplete(true);
       toast.success("Sale processed and payment completed successfully");
     } catch (error) {
-      toast.error(`Failed to process sale: Ksh{error.message || "Unknown error"}`);
+      toast.error(`Failed to process sale: ${error.message || "Unknown error"}`);
     }
   };
 
@@ -143,7 +143,7 @@ export default function POS() {
 
     dispatch(updateInventoryStock(updatedProduct));
     dispatch(removeFromCart(item.id)); // Remove the item from the cart after return
-    toast.success(`Ksh{item.name} has been returned.`);
+    toast.success(`${item.name} has been returned.`);
   };
 
   // Function to render icon dynamically based on the icon name
@@ -199,7 +199,7 @@ export default function POS() {
                     {renderIcon(product.icon)} {/* Displaying icon here */}
                   </div>
                   <h3 className="font-medium text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500">Ksh{product.price.toFixed(2)}</p>
+                  <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">Stock: {product.quantity}</p>
                 </button>
               ))}
@@ -225,7 +225,7 @@ export default function POS() {
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="flex-1">
                     <p>{item.name}</p>
-                    <p className="text-sm text-gray-500">Ksh{item.price.toFixed(2)}</p>
+                    <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
                     <p className="text-sm text-gray-500">Qty: {item.cartQuantity}</p>
                   </div>
                   <div className="flex gap-2">
@@ -257,14 +257,14 @@ export default function POS() {
         <div className="p-6 border-t border-gray-200">
           <div className="flex justify-between text-lg">
             <span>Total:</span>
-            <span className="font-semibold">Ksh{cart.total.toFixed(2)}</span>
+            <span className="font-semibold">${cart.total.toFixed(2)}</span>
           </div>
 
           {/* Payment method section */}
           <div className="mt-4">
             <div className="flex items-center gap-2">
               <button
-                className={`py-1 px-4 rounded-md Ksh{
+                className={`py-1 px-4 rounded-md ${
                   paymentMethod === "cash" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
                 }`}
                 onClick={() => handlePaymentMethodChange("cash")}
@@ -272,7 +272,7 @@ export default function POS() {
                 Cash
               </button>
               <button
-                className={`py-1 px-4 rounded-md Ksh{
+                className={`py-1 px-4 rounded-md ${
                   paymentMethod === "card" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
                 }`}
                 onClick={() => handlePaymentMethodChange("card")}

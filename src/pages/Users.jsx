@@ -17,7 +17,7 @@ export default function Users() {
     try {
       const response = await fetch("http://localhost:5000/users", {
         headers: {
-          "Authorization": `Bearer Ksh{localStorage.getItem("token")}`, // Assuming token is saved in localStorage
+          "Authorization": `Bearer ${localStorage.getItem("token")}`, // Assuming token is saved in localStorage
         },
       });
       if (!response.ok) {
@@ -39,7 +39,7 @@ export default function Users() {
 
   // Edit user action (only for admins)
   const handleEditUser = (userId) => {
-    alert(`Edit User ID: Ksh{userId}`);
+    alert(`Edit User ID: ${userId}`);
   };
 
   // Delete user action (only for admins)
@@ -47,10 +47,10 @@ export default function Users() {
     const confirmDelete = window.confirm("Are you sure you want to delete this user?");
     if (confirmDelete) {
       // Call the API to delete the user
-      fetch(`http://localhost:5000/users/Ksh{userId}`, {
+      fetch(`http://localhost:5000/users/${userId}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer Ksh{localStorage.getItem("token")}`, // Assuming token is saved in localStorage
+          "Authorization": `Bearer ${localStorage.getItem("token")}`, // Assuming token is saved in localStorage
         },
       })
         .then(response => response.json())
@@ -104,7 +104,7 @@ export default function Users() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{user.role}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full Ksh{
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         user.is_verified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                       }`}
                     >
@@ -113,7 +113,7 @@ export default function Users() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                     <button
-                      onClick={() => alert(`View details for Ksh{user.username}`)}
+                      onClick={() => alert(`View details for ${user.username}`)}
                       className="text-indigo-600 hover:text-indigo-900 mr-4"
                     >
                       View
