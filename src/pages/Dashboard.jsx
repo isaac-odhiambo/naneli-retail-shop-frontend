@@ -158,7 +158,7 @@ export default function Dashboard() {
             {/* Updated Today's Sales Card */}
             <DashboardCard
               title="Today's Sales"
-              value={`Ksh ${totalSales.toLocaleString()}`} // Updated to reflect today's sales with currency format
+              value={`$ ${totalSales.toLocaleString()}`} // Updated to reflect today's sales with currency format
               icon={<DollarSign className="h-8 w-8 text-green-500" />}
               trend="+12.5%" // Trend could be dynamic if you wish to show positive/negative change
               link="/sales/today" // Link to the detailed sales page for today
@@ -398,7 +398,7 @@ function LowStockItem({ name, quantity, reorder_point }) {
 //           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 //             <DashboardCard
 //               title="Today's Sales"
-//               value={`$${totalSales.toLocaleString()}`} // Updated to reflect today's sales
+//               value={`KshKsh{totalSales.toLocaleString()}`} // Updated to reflect today's sales
 //               icon={<DollarSign className="h-8 w-8 text-green-500" />}
 //               trend="+12.5%"
 //               link="/sales/today" // Link to the detailed sales page for today
@@ -640,7 +640,7 @@ function LowStockItem({ name, quantity, reorder_point }) {
 //           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 //             <DashboardCard
 //               title="Today's Sales"
-//               value={`$${totalSales.toLocaleString()}`} // Updated to reflect today's sales
+//               value={`KshKsh{totalSales.toLocaleString()}`} // Updated to reflect today's sales
 //               icon={<DollarSign className="h-8 w-8 text-green-500" />}
 //               trend="+12.5%"
 //               link="/sales/today" // Link to the detailed sales page for today
@@ -853,7 +853,7 @@ function LowStockItem({ name, quantity, reorder_point }) {
 //           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
 //             <DashboardCard
 //               title="Today's Sales"
-//               value={`$${totalSales.toLocaleString()}`} // Updated to reflect today's sales
+//               value={`KshKsh{totalSales.toLocaleString()}`} // Updated to reflect today's sales
 //               icon={<DollarSign className="h-8 w-8 text-green-500" />}
 //               trend="+12.5%"
 //               link="/sales/today" // Link to the detailed sales page for today

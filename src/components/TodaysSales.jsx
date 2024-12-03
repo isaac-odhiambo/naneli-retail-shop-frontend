@@ -39,7 +39,7 @@ const TodaysSales = () => {
       {/* Today's Total Sales */}
       <div className="bg-white p-6 rounded shadow mb-6">
         <h3 className="text-xl font-semibold">Today's Total Sales</h3>
-        <p className="text-lg font-medium text-gray-900">Ksh {totalSales}</p>
+        <p className="text-lg font-medium text-gray-900">$ {totalSales}</p>
       </div>
 
       {/* Sales Table */}
@@ -61,7 +61,7 @@ const TodaysSales = () => {
                   className="hover:bg-gray-100 cursor-pointer"
                 >
                   <td className="px-6 py-4 text-sm text-gray-800">{sale.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-800">Ksh {sale.total.toFixed(2)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-800">$ {sale.total.toFixed(2)}</td>
                   <td className="px-6 py-4 text-sm text-gray-800">{sale.payment_method}</td>
                   <td className="px-6 py-4 text-sm text-gray-800">
                     {new Date(sale.timestamp).toLocaleString()}

@@ -10,7 +10,7 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`Ksh{isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300`}>
+      <div className={`${isSidebarOpen ? 'w-64' : 'w-16'} transition-all duration-300`}>
         <Sidebar onClose={() => setIsSidebarOpen(false)} />
       </div>
 
@@ -23,7 +23,7 @@ export default function Layout() {
         <Header onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)} />
 
         {/* Main Section */}
-        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 Ksh{isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
+        <main className={`flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
           <Outlet />
         </main>
 
