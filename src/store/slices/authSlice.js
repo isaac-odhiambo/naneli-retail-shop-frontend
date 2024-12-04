@@ -1,9 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  user: JSON.parse(localStorage.getItem('user')) || null, // Get user from localStorage if available
-  isAuthenticated: !!localStorage.getItem('user'), // Check if user exists in localStorage
-  role: null, // We'll get this from the user data
+  // Check localStorage for user and role persistence on page reload
+  user: JSON.parse(localStorage.getItem('user')) || null, // Retrieve user object from localStorage if available
+  isAuthenticated: !!localStorage.getItem('user'), // Check if a user is logged in (based on the presence of 'user' in localStorage)
+  role: JSON.parse(localStorage.getItem('user'))?.role || null, // Get the role from localStorage if it exists
   allUsers: [], // For tracking all users (admin functionality)
 };
 
@@ -11,6 +12,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    // Login action to authenticate and store user info in Redux and localStorage
     login(state, action) {
       const { user } = action.payload;
       state.user = { 
@@ -21,28 +23,32 @@ const authSlice = createSlice({
       state.isAuthenticated = true;
       state.role = user.role;
       
-      // Store user data in localStorage for persistence
+      // Persist user data and role in localStorage
       localStorage.setItem('user', JSON.stringify(user));
     },
 
+    // Logout action to clear user data from Redux and localStorage
     logout(state) {
       state.user = null;
       state.role = null;
       state.isAuthenticated = false;
       
-      // Remove user data from localStorage
+      // Remove user data and role from localStorage
       localStorage.removeItem('user');
     },
 
+    // Set the current user from external data (useful for admin or other actions)
     setUser(state, action) {
       state.user = action.payload.user;
       state.role = action.payload.user.role;
     },
 
+    // Add a new user to the allUsers array
     addUser(state, action) {
       state.allUsers.push(action.payload);
     },
 
+    // Edit an existing user by their id
     editUser(state, action) {
       const { id, updatedUser } = action.payload;
       const userIndex = state.allUsers.findIndex(user => user.id === id);
@@ -51,11 +57,13 @@ const authSlice = createSlice({
       }
     },
 
+    // Delete a user by their id
     deleteUser(state, action) {
       const { id } = action.payload;
       state.allUsers = state.allUsers.filter(user => user.id !== id);
     },
 
+    // Set the entire list of users (useful for admin management)
     setUsers(state, action) {
       state.allUsers = action.payload;
     },
@@ -72,6 +80,82 @@ export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAllUsers = (state) => state.auth.allUsers;
 
 export default authSlice.reducer;
+
+
+// import { createSlice } from '@reduxjs/toolkit';
+
+// const initialState = {
+//   user: JSON.parse(localStorage.getItem('user')) || null, // Get user from localStorage if available
+//   isAuthenticated: !!localStorage.getItem('user'), // Check if user exists in localStorage
+//   role: null, // We'll get this from the user data
+//   allUsers: [], // For tracking all users (admin functionality)
+// };
+
+// const authSlice = createSlice({
+//   name: 'auth',
+//   initialState,
+//   reducers: {
+//     login(state, action) {
+//       const { user } = action.payload;
+//       state.user = { 
+//         ...user, 
+//         loginTime: new Date().toISOString(),
+//         logoutTime: null, 
+//       };
+//       state.isAuthenticated = true;
+//       state.role = user.role;
+      
+//       // Store user data in localStorage for persistence
+//       localStorage.setItem('user', JSON.stringify(user));
+//     },
+
+//     logout(state) {
+//       state.user = null;
+//       state.role = null;
+//       state.isAuthenticated = false;
+      
+//       // Remove user data from localStorage
+//       localStorage.removeItem('user');
+//     },
+
+//     setUser(state, action) {
+//       state.user = action.payload.user;
+//       state.role = action.payload.user.role;
+//     },
+
+//     addUser(state, action) {
+//       state.allUsers.push(action.payload);
+//     },
+
+//     editUser(state, action) {
+//       const { id, updatedUser } = action.payload;
+//       const userIndex = state.allUsers.findIndex(user => user.id === id);
+//       if (userIndex !== -1) {
+//         state.allUsers[userIndex] = { ...state.allUsers[userIndex], ...updatedUser };
+//       }
+//     },
+
+//     deleteUser(state, action) {
+//       const { id } = action.payload;
+//       state.allUsers = state.allUsers.filter(user => user.id !== id);
+//     },
+
+//     setUsers(state, action) {
+//       state.allUsers = action.payload;
+//     },
+//   },
+// });
+
+// // Export the actions from the slice
+// export const { login, logout, setUser, addUser, editUser, deleteUser, setUsers } = authSlice.actions;
+
+// // Selectors for the state
+// export const selectCurrentUser = (state) => state.auth.user;
+// export const selectCurrentRole = (state) => state.auth.role; // Selector for role
+// export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
+// export const selectAllUsers = (state) => state.auth.allUsers;
+
+// export default authSlice.reducer;
 
 
 // import { createSlice } from '@reduxjs/toolkit';

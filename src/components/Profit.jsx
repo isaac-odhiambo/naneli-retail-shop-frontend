@@ -9,6 +9,7 @@ import {
   selectSalesError
 } from '../store/slices/salesSlice'; // Ensure correct imports
 import { toast } from 'react-toastify';
+import { fetchSales } from '../store/slices/salesSlice'; // Ensure fetchSales is imported if needed
 
 export default function Profit() {
   const dispatch = useDispatch();
@@ -19,7 +20,7 @@ export default function Profit() {
   const profitForThisWeek = useSelector(selectProfitForThisWeek);
   const profitForThisMonth = useSelector(selectProfitForThisMonth);
   const profitOverall = useSelector(selectProfitOverall);
-  
+
   // Loading and error states
   const loading = useSelector(selectSalesLoading);
   const error = useSelector(selectSalesError);
@@ -39,7 +40,15 @@ export default function Profit() {
     }
   }, [error]);
 
-  // Determine which profit data to display based on the selected view
+  // Helper function to calculate the total profit for a sale
+  const calculateProfitForSale = (sale) => {
+    return sale.items.reduce((totalProfit, item) => {
+      const itemProfit = (item.price - item.cost) * item.cartQuantity;
+      return totalProfit + itemProfit;
+    }, 0);
+  };
+
+  // Calculate total profit for the selected view (daily, weekly, monthly, overall)
   const getProfitData = () => {
     switch (view) {
       case 'daily':
@@ -54,6 +63,9 @@ export default function Profit() {
         return profitForToday;
     }
   };
+
+  // Calculate total profit for the selected period (today, week, month, overall)
+  const totalProfit = getProfitData().reduce((total, sale) => total + calculateProfitForSale(sale), 0).toFixed(2);
 
   return (
     <div className="h-[calc(100vh-6rem)] p-6">
@@ -81,12 +93,18 @@ export default function Profit() {
           </div>
 
           {/* No profit data available */}
-          {getProfitData() === null ? (
+          {getProfitData() === null || getProfitData().length === 0 ? (
             <p>No profit data available for this period.</p>
           ) : (
             <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-xl font-semibold mb-4">Profit for {view === 'daily' ? "Today" : view === 'weekly' ? "This Week" : view === 'monthly' ? "This Month" : "All Time"}</h3>
-              <table className="min-w-full table-auto">
+              <h3 className="text-xl font-semibold mb-4">
+                Profit for {view === 'daily' ? "Today" : view === 'weekly' ? "This Week" : view === 'monthly' ? "This Month" : "All Time"}
+              </h3>
+              
+              {/* Display total profit for the selected period */}
+              <p className="text-lg font-semibold">Total Profit: ${totalProfit}</p>
+
+              <table className="min-w-full table-auto mt-4">
                 <thead>
                   <tr>
                     <th className="px-4 py-2 text-left">Sale ID</th>
@@ -99,7 +117,7 @@ export default function Profit() {
                     <tr key={sale.id}>
                       <td className="px-4 py-2">{sale.id}</td>
                       <td className="px-4 py-2">{new Date(sale.timestamp).toLocaleString()}</td>
-                      <td className="px-4 py-2">${sale.profit ? sale.profit.toFixed(2) : 'N/A'}</td>
+                      <td className="px-4 py-2">${calculateProfitForSale(sale).toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -111,6 +129,7 @@ export default function Profit() {
     </div>
   );
 }
+
 
 
 // import React, { useEffect } from 'react';
