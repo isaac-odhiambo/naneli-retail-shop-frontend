@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSales, selectSalesForToday, calculateTotalSales } from '../store/slices/salesSlice'; // Updated import
+import { fetchSales, selectSalesForToday, selectSalesLoading, selectSalesError } from '../store/slices/salesSlice'; // Updated import
 import { toast } from 'react-toastify'; // Assuming you're using toast for error messages
 
 const TodaysSales = () => {
   const dispatch = useDispatch();
-  const todaysSales = useSelector(selectSalesForToday); // Correct selector for today's sales
-  const loading = useSelector((state) => state.sales.loading);
-  const error = useSelector((state) => state.sales.error);
+
+  // Fetch sales data
+  const todaysSales = useSelector(selectSalesForToday); // Get today's sales
+  const loading = useSelector(selectSalesLoading); // Check loading state
+  const error = useSelector(selectSalesError); // Check for any error
   
   const [view, setView] = useState('daily'); // State to manage the selected view (although it's only daily for now)
 
-  // Calculate total sales for today
-  const totalSales = calculateTotalSales(todaysSales);
+  // Calculate total sales for today using the sales slice logic
+  const totalSales = todaysSales.reduce((total, sale) => total + sale.total, 0).toFixed(2);
 
   // Fetch sales when the component mounts
   useEffect(() => {
@@ -101,5 +103,6 @@ const TodaysSales = () => {
 };
 
 export default TodaysSales;
+
 
 

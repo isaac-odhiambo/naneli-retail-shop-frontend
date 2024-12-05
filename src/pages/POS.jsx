@@ -2,16 +2,13 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Search, Plus, Minus, Trash2, CreditCard } from "lucide-react";
-import { format } from "date-fns";
 import toast from "react-hot-toast";
-
-// Import icons from react-icons
 import { FaApple, FaBeer, FaCarrot, FaCoffee, FaLaptop, FaPhone } from 'react-icons/fa';
 
 // Redux actions
 import { fetchProducts, updateInventoryStock, removeProductFromInventory } from "../store/slices/inventorySlice";
 import { addToCart, removeFromCart, updateQuantity, clearCart } from "../store/slices/cartSlice";
-import { recordSale, setTotalProfit, setFilteredProfit } from "../store/slices/salesSlice"; // Ensure we import the necessary actions
+import { recordSale, setTotalProfit, setFilteredProfit } from "../store/slices/salesSlice"; 
 
 export default function POS() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,10 +29,7 @@ export default function POS() {
       });
   }, [dispatch]);
 
-  // Log Redux state changes (loading, error, products)
-  const { loading, error, products } = useSelector((state) => state.inventory);
-
-  // Handle adding a product to the cart
+  // Handle adding a product to the cart by clicking on the product icon
   const handleAddToCart = (product) => {
     const cartItem = cart.items.find((item) => item.id === product.id);
     if (cartItem && cartItem.cartQuantity >= product.quantity) {
@@ -68,7 +62,7 @@ export default function POS() {
     cart.items.forEach((item) => {
       const product = inventory.find((p) => p.id === item.id);
       if (product) {
-        const costPrice = product.costPrice; // Assume costPrice is part of the product data
+        const costPrice = product.cost; // Assume costPrice is part of the product data
         const salePrice = item.price;
         const profit = (salePrice - costPrice) * item.cartQuantity;
         totalProfit += profit;
@@ -88,51 +82,63 @@ export default function POS() {
     const saleData = {
       cashier_id: currentUser ? currentUser.id : 1,  // Use the logged-in cashier's ID or default to 1
       items: cart.items.map((item) => ({
-        id: item.id,  // Use the item ID from cart
+        id: item.id,  
         price: item.price,
-        product_id: item.id,  // Use the product ID from cart
-        product_name: item.name,  // Use the product name from the cart
-        quantity: item.cartQuantity,  // Ensure the cart quantity is used
-        sale_id: 1,  // Use the same sale_id for all items in the sale (if needed, generate this dynamically)
+        product_cost: item.costPrice,  
+        product_id: item.id,  
+        product_name: item.name,  
+        product_price: item.price,  
+        quantity: item.cartQuantity,  
+        sale_id: 1,  
       })),
-      payment_method: paymentMethod,
+      payment_method: paymentMethod, 
       timestamp: new Date().toISOString(),
       total: cart.total,
     };
 
     try {
       // First, record the sale in the backend
-      const sale = await dispatch(recordSale(saleData)).unwrap(); // Record the sale
+      const sale = await dispatch(recordSale(saleData)).unwrap();
 
-      // Calculate profit from the cart items
-      const totalProfit = calculateProfit();
+      // Log profit calculation
+      let totalProfit = 0;
+      cart.items.forEach((item) => {
+        const product = inventory.find((p) => p.id === item.id);
+        if (product) {
+          const costPrice = product.cost;
+          const salePrice = item.price;
+          const profit = (salePrice - costPrice) * item.cartQuantity;
+          totalProfit += profit;
+        }
+      });
+
       // Dispatch the profit to the Redux store
-      dispatch(setTotalProfit(totalProfit)); // Update the overall profit in Redux
+      dispatch(setTotalProfit(totalProfit));
 
-      // If sale is successful, update inventory stock
+      // Update inventory stock and remove product if stock reaches zero
       for (const item of cart.items) {
         const updatedProduct = {
           id: item.id,
-          quantity: item.quantity - item.cartQuantity, // Update stock by reducing quantity
+          quantity: inventory.find((p) => p.id === item.id)?.quantity - item.cartQuantity,
         };
-        
+
         await dispatch(updateInventoryStock(updatedProduct)).unwrap();
 
-        // If stock is 0 after sale, remove the product from the inventory
-        if (updatedProduct.quantity === 0) {
+        if (updatedProduct.quantity <= 0) {
           await dispatch(removeProductFromInventory(item.id)).unwrap();
         }
       }
 
       // Clear the cart after the sale is successfully recorded
       dispatch(clearCart());
-      setSearchTerm(""); // Reset search term
-      setPaymentAmount(0); // Reset payment amount
-      setPaymentMethod("cash"); // Reset payment method
+      setSearchTerm(""); 
+      setPaymentAmount(0); 
+      setPaymentMethod("cash"); 
 
       // Show success message and New Sale button
       setTransactionComplete(true);
       toast.success("Sale processed and payment completed successfully");
+
     } catch (error) {
       toast.error(`Failed to process sale: ${error.message || "Unknown error"}`);
     }
@@ -153,25 +159,11 @@ export default function POS() {
 
   // Handle starting a new sale
   const handleNewSale = () => {
-    // Reset POS state for a new transaction
     dispatch(clearCart());
-    setSearchTerm(""); // Reset search term
-    setPaymentAmount(0); // Reset payment amount
-    setPaymentMethod("cash"); // Reset payment method
-    setTransactionComplete(false); // Hide success message
-  };
-
-  // Handle returning an item
-  const handleReturn = (item) => {
-    // Update inventory to increase stock
-    const updatedProduct = {
-      id: item.id,
-      quantity: item.quantity + item.cartQuantity, // Increase stock by the quantity of returned items
-    };
-
-    dispatch(updateInventoryStock(updatedProduct));
-    dispatch(removeFromCart(item.id)); // Remove the item from the cart after return
-    toast.success(`${item.name} has been returned.`);
+    setSearchTerm(""); 
+    setPaymentAmount(0); 
+    setPaymentMethod("cash"); 
+    setTransactionComplete(false); 
   };
 
   // Function to render icon dynamically based on the icon name
@@ -190,821 +182,142 @@ export default function POS() {
       case 'FaPhone':
         return <FaPhone />;
       default:
-        return null; // Return nothing if the icon is unknown
+        return null;
     }
   };
 
   return (
-    <div className="h-[calc(100vh-6rem)] flex gap-6">
+    <div className="flex gap-6 h-[calc(100vh-6rem)] overflow-hidden">
       {/* Products Section */}
-      <div className="flex-1 flex flex-col bg-white rounded-lg shadow-sm">
+      <div className="flex-1 flex flex-col bg-white rounded-lg shadow-sm overflow-auto">
         <div className="p-6 border-b border-gray-200">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search products..."
+              className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300"
+              placeholder="Search for products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
           </div>
         </div>
 
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {inventory
-              .filter((product) =>
-                product.name.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((product) => (
-                <button
-                  key={product.id}
-                  onClick={() => handleAddToCart(product)}
-                  className="p-4 border rounded-lg hover:border-indigo-500 transition-colors"
-                >
-                  <div className="w-full h-32 mb-3 flex items-center justify-center">
-                    {renderIcon(product.icon)} {/* Displaying icon here */}
-                  </div>
-                  <h3 className="text-lg text-center font-semibold text-gray-900">
-                    {product.name}
-                  </h3>
-                  <p className="text-center text-sm text-gray-500">${product.price}</p>
-                </button>
-              ))}
-          </div>
+        {/* Grid of products */}
+        <div className="p-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 overflow-auto">
+          {inventory
+            .filter((product) =>
+              product.name.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map((product) => (
+              <div
+                key={product.id}
+                onClick={() => handleAddToCart(product)}
+                className="cursor-pointer text-center bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-300"
+              >
+                <div className="flex justify-center mb-4">
+                  {renderIcon(product.icon)} {/* Render product icon */}
+                </div>
+                <span className="font-semibold text-sm">{product.name}</span>
+                <div className="mt-1 text-xs text-gray-500">Stock: {product.quantity}</div>
+                <div className="text-lg font-bold mt-2">Ksh {product.price}</div>
+              </div>
+            ))}
         </div>
       </div>
 
       {/* Cart Section */}
-      <div className="w-96 bg-white rounded-lg shadow-sm flex flex-col">
+      <div className="w-1/3 flex flex-col bg-white rounded-lg shadow-sm overflow-auto">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Current Sale</h2>
-          <p className="text-sm text-gray-500">
-            {format(new Date(), "MMM d, yyyy h:mm a")}
-          </p>
+          <h2 className="text-lg font-semibold">Cart</h2>
         </div>
-
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="p-6 overflow-auto">
           {cart.items.length === 0 ? (
-            <p className="text-center text-gray-500">No items in cart</p>
+            <div>No items in cart</div>
           ) : (
-            <div className="space-y-4">
-              {cart.items.map((item) => (
-                <div key={item.id} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <p>{item.name}</p>
-                    <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
-                    <p className="text-sm text-gray-500">Qty: {item.cartQuantity}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      className="text-indigo-500"
-                      onClick={() => handleQuantityChange(item.id, item.cartQuantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-indigo-500"
-                      onClick={() => handleQuantityChange(item.id, item.cartQuantity - 1)}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <button
-                      className="text-red-500"
-                      onClick={() => handleReturn(item)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+            cart.items.map((item) => (
+              <div key={item.id} className="flex justify-between items-center py-2">
+                <div className="flex items-center">
+                  {renderIcon(item.icon)} {/* Render item icon */}
+                  <span className="ml-2">{item.name}</span>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => handleQuantityChange(item.id, item.cartQuantity - 1)}
+                    className="px-2 py-1 bg-gray-300 rounded-md"
+                  >
+                    <Minus />
+                  </button>
+                  <span className="mx-2">{item.cartQuantity}</span>
+                  <button
+                    onClick={() => handleQuantityChange(item.id, item.cartQuantity + 1)}
+                    className="px-2 py-1 bg-gray-300 rounded-md"
+                  >
+                    <Plus />
+                  </button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleReturn(item)}
+                    className="bg-yellow-500 text-white px-4 py-2 rounded-md"
+                  >
+                    Return
+                  </button>
+                  <button
+                    onClick={() => dispatch(removeFromCart(item.id))}
+                    className="bg-red-500 text-white px-4 py-2 rounded-md"
+                  >
+                    <Trash2 className="text-white" />
+                  </button>
+                </div>
+              </div>
+            ))
           )}
         </div>
 
+        {/* Checkout and Payment */}
         <div className="p-6 border-t border-gray-200">
-          <div className="flex justify-between text-lg">
-            <span>Total:</span>
-            <span className="font-semibold">${cart.total.toFixed(2)}</span>
+          <div className="flex justify-between mb-4">
+            <div className="text-lg font-semibold">Total: Ksh {cart.total}</div>
+            <div className="text-lg font-semibold">Profit: Ksh {calculateProfit()}</div>
           </div>
-
-          {/* Payment method section */}
-          <div className="mt-4">
-            <div className="flex items-center gap-2">
+          <div className="mb-4">
+            <label className="block text-sm">Payment Method</label>
+            <div className="flex space-x-4">
               <button
-                className={`py-1 px-4 rounded-md ${
-                  paymentMethod === "cash" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-                }`}
                 onClick={() => handlePaymentMethodChange("cash")}
+                className={`py-2 px-4 rounded-md ${paymentMethod === "cash" ? "bg-green-500 text-white" : "bg-gray-200"}`}
               >
                 Cash
               </button>
               <button
-                className={`py-1 px-4 rounded-md ${
-                  paymentMethod === "card" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-                }`}
-                onClick={() => handlePaymentMethodChange("card")}
+                onClick={() => handlePaymentMethodChange("mpesa")}
+                className={`py-2 px-4 rounded-md ${paymentMethod === "mpesa" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
               >
-                Card
+                MPESA
               </button>
             </div>
-
-            {paymentMethod === "cash" && (
-              <div className="mt-2">
-                <label className="block text-sm text-gray-700">Payment Amount</label>
-                <input
-                  type="number"
-                  className="mt-1 w-full p-2 border rounded-md"
-                  value={paymentAmount}
-                  onChange={handlePaymentAmountChange}
-                />
-              </div>
-            )}
           </div>
-
-          {/* Buttons */}
-          <div className="mt-6">
-            <button
-              className="w-full py-2 bg-green-500 text-white rounded-lg"
-              onClick={handleCheckout}
-            >
-              Complete Sale
-            </button>
-
-            {transactionComplete && (
-              <button
-                className="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg"
-                onClick={handleNewSale}
-              >
-                New Sale
-              </button>
-            )}
-          </div>
+          {paymentMethod === "cash" && (
+            <div className="mb-4">
+              <label className="block text-sm">Amount Paid</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={paymentAmount}
+                onChange={handlePaymentAmountChange}
+              />
+            </div>
+          )}
+          <button
+            onClick={handleCheckout}
+            className="w-full bg-blue-500 text-white py-2 rounded-md"
+          >
+            Checkout
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-
-
-
-
-// /** @jsxImportSource react */
-// import { useState, useEffect } from "react";
-// import { useSelector, useDispatch } from "react-redux";
-// import { Search, Plus, Minus, Trash2, CreditCard } from "lucide-react";
-// import { format } from "date-fns";
-// import toast from "react-hot-toast";
-
-// // Redux actions
-// import { fetchProducts, updateInventoryStock, removeProductFromInventory } from "../store/slices/inventorySlice";
-// import { addToCart, removeFromCart, updateQuantity, clearCart } from "../store/slices/cartSlice";
-// import { recordSale, updateProfit } from "../store/slices/salesSlice"; // Add updateProfit import
-
-// export default function POS() {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [paymentMethod, setPaymentMethod] = useState("cash");
-//   const [paymentAmount, setPaymentAmount] = useState(0);
-//   const [transactionComplete, setTransactionComplete] = useState(false); // State to control success message display
-//   const cart = useSelector((state) => state.cart);
-//   const inventory = useSelector((state) => state.inventory.products);
-//   const currentUser = useSelector((state) => state.auth.user); // Assuming user info is stored in authSlice
-//   const dispatch = useDispatch();
-
-//   // Fetch products when the component mounts
-//   useEffect(() => {
-//     dispatch(fetchProducts());
-//   }, [dispatch]);
-
-//   // Handle adding a product to the cart
-//   const handleAddToCart = (product) => {
-//     const cartItem = cart.items.find((item) => item.id === product.id);
-//     if (cartItem && cartItem.cartQuantity >= product.quantity) {
-//       toast.error("Not enough stock available");
-//       return;
-//     }
-//     if (product.quantity === 0) {
-//       toast.error("Product out of stock");
-//       return;
-//     }
-//     dispatch(addToCart(product));
-//   };
-
-//   // Handle quantity change in the cart
-//   const handleQuantityChange = (id, newQuantity) => {
-//     const product = inventory.find((p) => p.id === id);
-//     if (product) {
-//       const maxQuantity = product.quantity;
-//       if (newQuantity <= maxQuantity && newQuantity >= 1) {
-//         dispatch(updateQuantity({ id, quantity: newQuantity }));
-//       } else {
-//         toast.error("Not enough stock available");
-//       }
-//     }
-//   };
-
-//   // Function to calculate profit (without displaying cost to the user)
-//   const calculateProfit = () => {
-//     let totalProfit = 0;
-//     cart.items.forEach((item) => {
-//       const product = inventory.find((p) => p.id === item.id);
-//       if (product) {
-//         const costPrice = product.costPrice; // Assume costPrice is part of the product data
-//         const salePrice = item.price;
-//         const profit = (salePrice - costPrice) * item.cartQuantity;
-//         totalProfit += profit;
-//       }
-//     });
-//     return totalProfit;
-//   };
-
-//   // Handle the checkout process
-//   const handleCheckout = async () => {
-//     if (cart.items.length === 0) {
-//       toast.error("Cart is empty");
-//       return;
-//     }
-
-//     // Prepare sale data according to the API's expected format
-//     const saleData = {
-//       cashier_id: currentUser ? currentUser.id : 1,  // Use the logged-in cashier's ID or default to 1
-//       items: cart.items.map((item) => ({
-//         id: item.id,  // Use the item ID from cart
-//         price: item.price,
-//         product_id: item.id,  // Use the product ID from cart
-//         product_name: item.name,  // Use the product name from the cart
-//         quantity: item.cartQuantity,  // Ensure the cart quantity is used
-//         sale_id: 1,  // Use the same sale_id for all items in the sale (if needed, generate this dynamically)
-//       })),
-//       payment_method: paymentMethod,
-//       timestamp: new Date().toISOString(),
-//       total: cart.total,
-//     };
-
-//     try {
-//       // First, record the sale in the backend
-//       const sale = await dispatch(recordSale(saleData)).unwrap(); // Record the sale
-
-//       // Calculate profit from the cart items
-//       const totalProfit = calculateProfit();
-//       // Dispatch the profit to the Redux store
-//       dispatch(updateProfit(totalProfit));
-
-//       // If sale is successful, update inventory stock
-//       for (const item of cart.items) {
-//         const updatedProduct = {
-//           id: item.id,
-//           quantity: item.quantity - item.cartQuantity, // Update stock by reducing quantity
-//         };
-//         await dispatch(updateInventoryStock(updatedProduct)).unwrap();
-
-//         // If stock is 0 after sale, remove the product from the inventory
-//         if (updatedProduct.quantity === 0) {
-//           await dispatch(removeProductFromInventory(item.id)).unwrap();
-//         }
-//       }
-
-//       // Clear the cart after the sale is successfully recorded
-//       dispatch(clearCart());
-//       setSearchTerm(""); // Reset search term
-//       setPaymentAmount(0); // Reset payment amount
-//       setPaymentMethod("cash"); // Reset payment method
-
-//       // Show success message and New Sale button
-//       setTransactionComplete(true);
-//       toast.success("Sale processed and payment completed successfully");
-//     } catch (error) {
-//       toast.error(`Failed to process sale: ${error.message || "Unknown error"}`);
-//     }
-//   };
-
-//   // Handle changing the payment method
-//   const handlePaymentMethodChange = (method) => {
-//     setPaymentMethod(method);
-//     if (method === "cash") {
-//       setPaymentAmount(cart.total);
-//     }
-//   };
-
-//   // Handle changing the payment amount
-//   const handlePaymentAmountChange = (event) => {
-//     setPaymentAmount(event.target.value);
-//   };
-
-//   // Handle starting a new sale
-//   const handleNewSale = () => {
-//     // Reset POS state for a new transaction
-//     dispatch(clearCart());
-//     setSearchTerm(""); // Reset search term
-//     setPaymentAmount(0); // Reset payment amount
-//     setPaymentMethod("cash"); // Reset payment method
-//     setTransactionComplete(false); // Hide success message
-//   };
-
-//   // Handle returning an item
-//   const handleReturn = (item) => {
-//     // Update inventory to increase stock
-//     const updatedProduct = {
-//       id: item.id,
-//       quantity: item.quantity + item.cartQuantity, // Increase stock by the quantity of returned items
-//     };
-
-//     dispatch(updateInventoryStock(updatedProduct));
-//     dispatch(removeFromCart(item.id)); // Remove the item from the cart after return
-//     toast.success(`${item.name} has been returned.`);
-//   };
-
-//   // Function to render icon dynamically based on the icon name
-//   const renderIcon = (iconName) => {
-//     switch (iconName) {
-//       case 'FaBeer':
-//         return <FaBeer />;
-//       case 'FaApple':
-//         return <FaApple />;
-//       case 'FaCarrot':
-//         return <FaCarrot />;
-//       case 'FaCoffee':
-//         return <FaCoffee />;
-//       case 'FaLaptop':
-//         return <FaLaptop />;
-//       case 'FaPhone':
-//         return <FaPhone />;
-//       default:
-//         return null; // Return nothing if the icon is unknown
-//     }
-//   };
-
-//   return (
-//     <div className="h-[calc(100vh-6rem)] flex gap-6">
-//       {/* Products Section */}
-//       <div className="flex-1 flex flex-col bg-white rounded-lg shadow-sm">
-//         <div className="p-6 border-b border-gray-200">
-//           <div className="relative">
-//             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-//             <input
-//               type="text"
-//               placeholder="Search products..."
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-//             />
-//           </div>
-//         </div>
-
-//         <div className="flex-1 p-6 overflow-y-auto">
-//           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-//             {inventory
-//               .filter((product) =>
-//                 product.name.toLowerCase().includes(searchTerm.toLowerCase())
-//               )
-//               .map((product) => (
-//                 <button
-//                   key={product.id}
-//                   onClick={() => handleAddToCart(product)}
-//                   className="p-4 border rounded-lg hover:border-indigo-500 transition-colors"
-//                 >
-//                   <div className="w-full h-32 mb-3 flex items-center justify-center">
-//                     {renderIcon(product.icon)} {/* Displaying icon here */}
-//                   </div>
-//                   <h3 className="font-medium text-gray-900">{product.name}</h3>
-//                   <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-//                   <p className="text-sm text-gray-500">Stock: {product.quantity}</p>
-//                 </button>
-//               ))}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Cart Section */}
-//       <div className="w-96 bg-white rounded-lg shadow-sm flex flex-col">
-//         <div className="p-6 border-b border-gray-200">
-//           <h2 className="text-lg font-semibold text-gray-900">Current Sale</h2>
-//           <p className="text-sm text-gray-500">
-//             {format(new Date(), "MMM d, yyyy h:mm a")}
-//           </p>
-//         </div>
-
-//         <div className="flex-1 p-6 overflow-y-auto">
-//           {cart.items.length === 0 ? (
-//             <p className="text-center text-gray-500">No items in cart</p>
-//           ) : (
-//             <div className="space-y-4">
-//               {cart.items.map((item) => (
-//                 <div key={item.id} className="flex items-center gap-4">
-//                   <div className="flex-1">
-//                     <p>{item.name}</p>
-//                     <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
-//                     <p className="text-sm text-gray-500">Qty: {item.cartQuantity}</p>
-//                   </div>
-//                   <div className="flex gap-2">
-//                     <button
-//                       className="text-indigo-500"
-//                       onClick={() => handleQuantityChange(item.id, item.cartQuantity + 1)}
-//                     >
-//                       <Plus className="h-4 w-4" />
-//                     </button>
-//                     <button
-//                       className="text-indigo-500"
-//                       onClick={() => handleQuantityChange(item.id, item.cartQuantity - 1)}
-//                     >
-//                       <Minus className="h-4 w-4" />
-//                     </button>
-//                     <button
-//                       className="text-red-500"
-//                       onClick={() => handleReturn(item)}
-//                     >
-//                       <Trash2 className="h-4 w-4" />
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-
-//         <div className="p-6 border-t border-gray-200">
-//           <div className="flex justify-between text-lg">
-//             <span>Total:</span>
-//             <span className="font-semibold">${cart.total.toFixed(2)}</span>
-//           </div>
-
-//           {/* Payment method section */}
-//           <div className="mt-4">
-//             <div className="flex items-center gap-2">
-//               <button
-//                 className={`py-1 px-4 rounded-md ${
-//                   paymentMethod === "cash" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-//                 }`}
-//                 onClick={() => handlePaymentMethodChange("cash")}
-//               >
-//                 Cash
-//               </button>
-//               <button
-//                 className={`py-1 px-4 rounded-md ${
-//                   paymentMethod === "card" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-//                 }`}
-//                 onClick={() => handlePaymentMethodChange("card")}
-//               >
-//                 Card
-//               </button>
-//             </div>
-
-//             {paymentMethod === "cash" && (
-//               <div className="mt-2">
-//                 <label className="block text-sm text-gray-700">Payment Amount</label>
-//                 <input
-//                   type="number"
-//                   className="mt-1 w-full p-2 border rounded-md"
-//                   value={paymentAmount}
-//                   onChange={handlePaymentAmountChange}
-//                 />
-//               </div>
-//             )}
-//           </div>
-
-//           {/* Buttons */}
-//           <div className="mt-6">
-//             <button
-//               className="w-full py-2 bg-green-500 text-white rounded-lg"
-//               onClick={handleCheckout}
-//             >
-//               Complete Sale
-//             </button>
-
-//             {transactionComplete && (
-//               <button
-//                 className="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg"
-//                 onClick={handleNewSale}
-//               >
-//                 New Sale
-//               </button>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
-
-// /** @jsxImportSource react */
-// import { useState, useEffect } from "react";
-// import { useSelector, useDispatch } from "react-redux";
-// import { Search, Plus, Minus, Trash2, CreditCard } from "lucide-react";
-// import { format } from "date-fns";
-// import toast from "react-hot-toast";
-
-// // Importing FontAwesome or other icon libraries
-// import { FaBeer, FaApple, FaCarrot, FaCoffee, FaLaptop, FaPhone } from "react-icons/fa";
-
-// // Redux actions
-// import { fetchProducts, updateInventoryStock, removeProductFromInventory } from "../store/slices/inventorySlice";
-// import { addToCart, removeFromCart, updateQuantity, clearCart } from "../store/slices/cartSlice";
-// import { recordSale } from "../store/slices/salesSlice"; // Correct action import
-
-// export default function POS() {
-//   const [searchTerm, setSearchTerm] = useState("");
-//   const [paymentMethod, setPaymentMethod] = useState("cash");
-//   const [paymentAmount, setPaymentAmount] = useState(0);
-//   const [transactionComplete, setTransactionComplete] = useState(false); // State to control success message display
-//   const cart = useSelector((state) => state.cart);
-//   const inventory = useSelector((state) => state.inventory.products);
-//   const currentUser = useSelector((state) => state.auth.user); // Assuming user info is stored in authSlice
-//   const dispatch = useDispatch();
-
-//   // Fetch products when the component mounts
-//   useEffect(() => {
-//     dispatch(fetchProducts());
-//   }, [dispatch]);
-
-//   // Handle adding a product to the cart
-//   const handleAddToCart = (product) => {
-//     const cartItem = cart.items.find((item) => item.id === product.id);
-//     if (cartItem && cartItem.cartQuantity >= product.quantity) {
-//       toast.error("Not enough stock available");
-//       return;
-//     }
-//     if (product.quantity === 0) {
-//       toast.error("Product out of stock");
-//       return;
-//     }
-//     dispatch(addToCart(product));
-//   };
-
-//   // Handle quantity change in the cart
-//   const handleQuantityChange = (id, newQuantity) => {
-//     const product = inventory.find((p) => p.id === id);
-//     if (product) {
-//       const maxQuantity = product.quantity;
-//       if (newQuantity <= maxQuantity && newQuantity >= 1) {
-//         dispatch(updateQuantity({ id, quantity: newQuantity }));
-//       } else {
-//         toast.error("Not enough stock available");
-//       }
-//     }
-//   };
-
-//   // Handle the checkout process
-//   const handleCheckout = async () => {
-//     if (cart.items.length === 0) {
-//       toast.error("Cart is empty");
-//       return;
-//     }
-
-//     // Prepare sale data according to the API's expected format
-//     const saleData = {
-//       cashier_id: currentUser ? currentUser.id : 1,  // Use the logged-in cashier's ID or default to 1
-//       items: cart.items.map((item) => ({
-//         id: item.id,  // Use the item ID from cart
-//         price: item.price,
-//         product_id: item.id,  // Use the product ID from cart
-//         product_name: item.name,  // Use the product name from the cart
-//         quantity: item.cartQuantity,  // Ensure the cart quantity is used
-//         sale_id: 1,  // Use the same sale_id for all items in the sale (if needed, generate this dynamically)
-//       })),
-//       payment_method: paymentMethod,
-//       timestamp: new Date().toISOString(),
-//       total: cart.total,
-//     };
-
-//     try {
-//       // First, record the sale in the backend
-//       const sale = await dispatch(recordSale(saleData)).unwrap(); // Record the sale
-
-//       // If sale is successful, update inventory stock
-//       for (const item of cart.items) {
-//         const updatedProduct = {
-//           id: item.id,
-//           quantity: item.quantity - item.cartQuantity, // Update stock by reducing quantity
-//         };
-//         await dispatch(updateInventoryStock(updatedProduct)).unwrap();
-
-//         // If stock is 0 after sale, remove the product from the inventory
-//         if (updatedProduct.quantity === 0) {
-//           await dispatch(removeProductFromInventory(item.id)).unwrap();
-//         }
-//       }
-
-//       // Clear the cart after the sale is successfully recorded
-//       dispatch(clearCart());
-//       setSearchTerm(""); // Reset search term
-//       setPaymentAmount(0); // Reset payment amount
-//       setPaymentMethod("cash"); // Reset payment method
-
-//       // Show success message and New Sale button
-//       setTransactionComplete(true);
-//       toast.success("Sale processed and payment completed successfully");
-//     } catch (error) {
-//       toast.error(`Failed to process sale: ${error.message || "Unknown error"}`);
-//     }
-//   };
-
-//   // Handle changing the payment method
-//   const handlePaymentMethodChange = (method) => {
-//     setPaymentMethod(method);
-//     if (method === "cash") {
-//       setPaymentAmount(cart.total);
-//     }
-//   };
-
-//   // Handle changing the payment amount
-//   const handlePaymentAmountChange = (event) => {
-//     setPaymentAmount(event.target.value);
-//   };
-
-//   // Handle starting a new sale
-//   const handleNewSale = () => {
-//     // Reset POS state for a new transaction
-//     dispatch(clearCart());
-//     setSearchTerm(""); // Reset search term
-//     setPaymentAmount(0); // Reset payment amount
-//     setPaymentMethod("cash"); // Reset payment method
-//     setTransactionComplete(false); // Hide success message
-//   };
-
-//   // Handle returning an item
-//   const handleReturn = (item) => {
-//     // Update inventory to increase stock
-//     const updatedProduct = {
-//       id: item.id,
-//       quantity: item.quantity + item.cartQuantity, // Increase stock by the quantity of returned items
-//     };
-
-//     dispatch(updateInventoryStock(updatedProduct));
-//     dispatch(removeFromCart(item.id)); // Remove the item from the cart after return
-//     toast.success(`${item.name} has been returned.`);
-//   };
-
-//   // Function to render icon dynamically based on the icon name
-//   const renderIcon = (iconName) => {
-//     switch (iconName) {
-//       case 'FaBeer':
-//         return <FaBeer />;
-//       case 'FaApple':
-//         return <FaApple />;
-//       case 'FaCarrot':
-//         return <FaCarrot />;
-//       case 'FaCoffee':
-//         return <FaCoffee />;
-//       case 'FaLaptop':
-//         return <FaLaptop />;
-//       case 'FaPhone':
-//         return <FaPhone />;
-//       default:
-//         return null; // Return nothing if the icon is unknown
-//     }
-//   };
-
-//   return (
-//     <div className="h-[calc(100vh-6rem)] flex gap-6">
-//       {/* Products Section */}
-//       <div className="flex-1 flex flex-col bg-white rounded-lg shadow-sm">
-//         <div className="p-6 border-b border-gray-200">
-//           <div className="relative">
-//             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-//             <input
-//               type="text"
-//               placeholder="Search products..."
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="pl-10 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-//             />
-//           </div>
-//         </div>
-
-//         <div className="flex-1 p-6 overflow-y-auto">
-//           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-//             {inventory
-//               .filter((product) =>
-//                 product.name.toLowerCase().includes(searchTerm.toLowerCase())
-//               )
-//               .map((product) => (
-//                 <button
-//                   key={product.id}
-//                   onClick={() => handleAddToCart(product)}
-//                   className="p-4 border rounded-lg hover:border-indigo-500 transition-colors"
-//                 >
-//                   <div className="w-full h-32 mb-3 flex items-center justify-center">
-//                     {renderIcon(product.icon)} {/* Displaying icon here */}
-//                   </div>
-//                   <h3 className="font-medium text-gray-900">{product.name}</h3>
-//                   <p className="text-sm text-gray-500">${product.price.toFixed(2)}</p>
-//                   <p className="text-sm text-gray-500">Stock: {product.quantity}</p>
-//                 </button>
-//               ))}
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Cart Section */}
-//       <div className="w-96 bg-white rounded-lg shadow-sm flex flex-col">
-//         <div className="p-6 border-b border-gray-200">
-//           <h2 className="text-lg font-semibold text-gray-900">Current Sale</h2>
-//           <p className="text-sm text-gray-500">
-//             {format(new Date(), "MMM d, yyyy h:mm a")}
-//           </p>
-//         </div>
-
-//         <div className="flex-1 p-6 overflow-y-auto">
-//           {cart.items.length === 0 ? (
-//             <p className="text-center text-gray-500">No items in cart</p>
-//           ) : (
-//             <div className="space-y-4">
-//               {cart.items.map((item) => (
-//                 <div key={item.id} className="flex items-center gap-4">
-//                   <div className="flex-1">
-//                     <p>{item.name}</p>
-//                     <p className="text-sm text-gray-500">${item.price.toFixed(2)}</p>
-//                     <p className="text-sm text-gray-500">Qty: {item.cartQuantity}</p>
-//                   </div>
-//                   <div className="flex gap-2">
-//                     <button
-//                       className="text-indigo-500"
-//                       onClick={() => handleQuantityChange(item.id, item.cartQuantity + 1)}
-//                     >
-//                       <Plus className="h-4 w-4" />
-//                     </button>
-//                     <button
-//                       className="text-indigo-500"
-//                       onClick={() => handleQuantityChange(item.id, item.cartQuantity - 1)}
-//                     >
-//                       <Minus className="h-4 w-4" />
-//                     </button>
-//                     <button
-//                       className="text-red-500"
-//                       onClick={() => handleReturn(item)}
-//                     >
-//                       <Trash2 className="h-4 w-4" />
-//                     </button>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//         </div>
-
-//         <div className="p-6 border-t border-gray-200">
-//           <div className="flex justify-between text-lg">
-//             <span>Total:</span>
-//             <span className="font-semibold">${cart.total.toFixed(2)}</span>
-//           </div>
-
-//           {/* Payment method section */}
-//           <div className="mt-4">
-//             <div className="flex items-center gap-2">
-//               <button
-//                 className={`py-1 px-4 rounded-md ${
-//                   paymentMethod === "cash" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-//                 }`}
-//                 onClick={() => handlePaymentMethodChange("cash")}
-//               >
-//                 Cash
-//               </button>
-//               <button
-//                 className={`py-1 px-4 rounded-md ${
-//                   paymentMethod === "card" ? "bg-indigo-500 text-white" : "bg-white text-indigo-500"
-//                 }`}
-//                 onClick={() => handlePaymentMethodChange("card")}
-//               >
-//                 Card
-//               </button>
-//             </div>
-
-//             {paymentMethod === "cash" && (
-//               <div className="mt-2">
-//                 <label className="block text-sm text-gray-700">Payment Amount</label>
-//                 <input
-//                   type="number"
-//                   className="mt-1 w-full p-2 border rounded-md"
-//                   value={paymentAmount}
-//                   onChange={handlePaymentAmountChange}
-//                 />
-//               </div>
-//             )}
-//           </div>
-
-//           {/* Buttons */}
-//           <div className="mt-6">
-//             <button
-//               className="w-full py-2 bg-green-500 text-white rounded-lg"
-//               onClick={handleCheckout}
-//             >
-//               Complete Sale
-//             </button>
-
-//             {transactionComplete && (
-//               <button
-//                 className="w-full mt-2 py-2 bg-blue-500 text-white rounded-lg"
-//                 onClick={handleNewSale}
-//               >
-//                 New Sale
-//               </button>
-//             )}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
