@@ -13,7 +13,7 @@ export const fetchProducts = createAsyncThunk(
   'inventory/fetchProducts',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('http://naneli-backend.onrender.com/products');
+      const response = await axios.get('https://naneli-backend.onrender.com/products');
       return response.data;  // Return product data
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to fetch products');
@@ -26,7 +26,7 @@ export const createProduct = createAsyncThunk(
   'inventory/createProduct',
   async (product, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://naneli-backend.onrender.com/products', {
+      const response = await axios.post('https://naneli-backend.onrender.com/products', {
         ...product,
         icon: product.icon || null,  // Make icon optional
       });
@@ -52,7 +52,7 @@ export const updateProductById = createAsyncThunk(
     };
 
     try {
-      const response = await axios.put(`http://naneli-backend.onrender.com/products/${id}`, updatedData);
+      const response = await axios.put(`https://naneli-backend.onrender.com/products/${id}`, updatedData);
       return response.data;  // Return updated product
     } catch (error) {
       console.error('Error updating product:', error.response?.data || error.message);
@@ -66,7 +66,7 @@ export const deleteProductById = createAsyncThunk(
   'inventory/deleteProductById',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`http://naneli-backend.onrender.com/products/${id}`);
+      await axios.delete(`https://naneli-backend.onrender.com/products/${id}`);
       return id;  // Return the product ID to remove it from the Redux store
     } catch (error) {
       return rejectWithValue(error.response?.data || 'Failed to delete product');
@@ -177,7 +177,7 @@ export default inventorySlice.reducer;
 //   'inventory/fetchProducts',
 //   async (_, { rejectWithValue }) => {
 //     try {
-//       const response = await axios.get('http://naneli-backend.onrender.com/products');
+//       const response = await axios.get('https://naneli-backend.onrender.com/products');
 //       return response.data;  // Return product data
 //     } catch (error) {
 //       return rejectWithValue(error.response?.data || 'Failed to fetch products');
@@ -190,7 +190,7 @@ export default inventorySlice.reducer;
 //   'inventory/createProduct',
 //   async (product, { rejectWithValue }) => {
 //     try {
-//       const response = await axios.post('http://naneli-backend.onrender.com/products', {
+//       const response = await axios.post('https://naneli-backend.onrender.com/products', {
 //         ...product,
 //         icon: product.icon || null,  // Make icon optional
 //       });
@@ -206,7 +206,7 @@ export default inventorySlice.reducer;
 //   'inventory/updateProductById',
 //   async ({ id, data }, { rejectWithValue }) => {
 //     try {
-//       const response = await axios.put(`http://naneli-backend.onrender.com/products/${id}`, {
+//       const response = await axios.put(`https://naneli-backend.onrender.com/products/${id}`, {
 //         ...data,
 //         icon: data.icon || null,  // Make icon optional
 //       });
@@ -222,7 +222,7 @@ export default inventorySlice.reducer;
 //   'inventory/deleteProductById',
 //   async (id, { rejectWithValue }) => {
 //     try {
-//       await axios.delete(`http://naneli-backend.onrender.com/products/${id}`);
+//       await axios.delete(`https://naneli-backend.onrender.com/products/${id}`);
 //       return id;  // Return the product ID to remove it from the Redux store
 //     } catch (error) {
 //       return rejectWithValue(error.response?.data || 'Failed to delete product');
@@ -240,7 +240,7 @@ export default inventorySlice.reducer;
 //     }
 
 //     try {
-//       const response = await axios.put(`http://naneli-backend.onrender.com/products/${product.id}`, {
+//       const response = await axios.put(`https://naneli-backend.onrender.com/products/${product.id}`, {
 //         quantity: product.quantity,  // Update quantity after sale
 //         barcode: product.barcode,
 //         category: product.category,

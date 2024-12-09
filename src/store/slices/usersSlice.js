@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Base API URL
-const API_BASE_URL = 'http://naneli-backend.onrender.com';
+const API_BASE_URL = 'https://naneli-backend.onrender.com';
 
 // Initial State
 const initialState = {

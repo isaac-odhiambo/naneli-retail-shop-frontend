@@ -20,7 +20,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://naneli-backend.onrender.com/login', {
+      const response = await fetch('https://naneli-backend.onrender.com/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

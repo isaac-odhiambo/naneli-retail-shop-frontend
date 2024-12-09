@@ -13,7 +13,7 @@ export default function ResetPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://naneli-backend.onrender.com/reset-password/${token}`, {
+      const response = await fetch(`https://naneli-backend.onrender.com/reset-password/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

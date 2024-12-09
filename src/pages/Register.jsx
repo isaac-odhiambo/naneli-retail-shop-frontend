@@ -45,7 +45,7 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch('http://naneli-backend.onrender.com/register', {
+      const response = await fetch('https://naneli-backend.onrender.com/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export default function Register() {
     console.log('Verification code submitted:', verificationCode); // Debugging
 
     try {
-      const response = await fetch('http://naneli-backend.onrender.com/verify', {
+      const response = await fetch('https://naneli-backend.onrender.com/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -89,7 +89,7 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const salesResponse = await fetch('http://naneli-backend.onrender.com/sales');
+      const salesResponse = await fetch('https://naneli-backend.onrender.com/sales');
       const sales = await salesResponse.json();
 
       // Get today's date in YYYY-MM-DD format
@@ -114,7 +114,7 @@ export default function Dashboard() {
       setTotalDailyProducts(dailyProducts); // Products sold today
 
       // Fetch low stock items
-      const productsResponse = await fetch('http://naneli-backend.onrender.com/products');
+      const productsResponse = await fetch('https://naneli-backend.onrender.com/products');
       const products = await productsResponse.json();
       const lowStock = products.filter(
         (product) => product.quantity < product.reorder_point
