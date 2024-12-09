@@ -15,7 +15,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:5000/users", {
+      const response = await fetch("http://naneli-backend.onrender.com/users", {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`, // Assuming token is saved in localStorage
         },
@@ -47,7 +47,7 @@ export default function Users() {
     const confirmDelete = window.confirm("Are you sure you want to delete this user?");
     if (confirmDelete) {
       // Call the API to delete the user
-      fetch(`http://localhost:5000/users/${userId}`, {
+      fetch(`http://naneli-backend.onrender.com/users/${userId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`, // Assuming token is saved in localStorage

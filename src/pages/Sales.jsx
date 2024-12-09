@@ -184,7 +184,7 @@ export default function Sales() {
                   prepareRow(row);
                   return (
                     <React.Fragment key={row.id}>
-                      <tr {...row.getRowProps()}>
+                      <tr {...row.getRowProps()} key={row.id}> {/* Pass key directly to tr */}
                         {row.cells.map(cell => (
                           <td {...cell.getCellProps()} key={cell.column.id} className="px-4 py-2 text-indigo-900">
                             {cell.render('Cell')}
@@ -194,20 +194,20 @@ export default function Sales() {
                       {/* Expanded Row for Item Details */}
                       {row.isExpanded ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-2 bg-indigo-50">
-                            <table className="min-w-full table-auto">
+                          <td colSpan={columns.length}>
+                            <table className="min-w-full table-auto mt-4">
                               <thead>
                                 <tr>
-                                  <th className="px-4 py-2 text-indigo-700">Product Name</th>
-                                  <th className="px-4 py-2 text-indigo-700">Quantity</th>
-                                  <th className="px-4 py-2 text-indigo-700">Price</th>
-                                  <th className="px-4 py-2 text-indigo-700">Subtotal</th>
+                                  <th className="px-4 py-2 text-left">Item</th>
+                                  <th className="px-4 py-2 text-left">Quantity</th>
+                                  <th className="px-4 py-2 text-left">Price</th>
+                                  <th className="px-4 py-2 text-left">Total</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {row.original.items?.map((item, index) => (
+                                {row.original.items.map((item, index) => (
                                   <tr key={index}>
-                                    <td className="px-4 py-2">{item.product_name}</td>
+                                    <td className="px-4 py-2">{item.name}</td>
                                     <td className="px-4 py-2">{item.quantity}</td>
                                     <td className="px-4 py-2">{item.price.toFixed(2)}</td>
                                     <td className="px-4 py-2">{(item.price * item.quantity).toFixed(2)}</td>

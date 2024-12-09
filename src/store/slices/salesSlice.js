@@ -16,7 +16,7 @@ export const fetchSales = createAsyncThunk(
     }
 
     try {
-      const response = await axios.get('http://localhost:5000/sales', {
+      const response = await axios.get('http://naneli-backend.onrender.com/sales', {
         headers: { Authorization: `Bearer ${user.token}` },
       });
       return response.data;
@@ -32,7 +32,7 @@ export const recordSale = createAsyncThunk(
   'sales/recordSale',
   async (saleData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('http://localhost:5000/sales', saleData);
+      const response = await axios.post('http://naneli-backend.onrender.com/sales', saleData);
       return response.data; // Sale was successful, return the data from the response
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Error during sale';

@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 // Base API URL
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://naneli-backend.onrender.com';
 
 // Initial State
 const initialState = {
@@ -13,7 +13,7 @@ const initialState = {
 // Thunk to fetch all users
 export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejectWithValue }) => {
   try {
-    const response = await fetch(`Ksh{API_BASE_URL}/users`);
+    const response = await fetch(`${API_BASE_URL}/users`);
     if (!response.ok) {
       throw new Error('Failed to fetch users');
     }
@@ -27,7 +27,7 @@ export const fetchUsers = createAsyncThunk('users/fetchUsers', async (_, { rejec
 // Thunk to add a new user
 export const addUser = createAsyncThunk('users/addUser', async (newUser, { rejectWithValue }) => {
   try {
-    const response = await fetch(`Ksh{API_BASE_URL}/users`, {
+    const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newUser),
@@ -45,7 +45,7 @@ export const addUser = createAsyncThunk('users/addUser', async (newUser, { rejec
 // Thunk to update user details
 export const updateUser = createAsyncThunk('users/updateUser', async (updatedUser, { rejectWithValue }) => {
   try {
-    const response = await fetch(`Ksh{API_BASE_URL}/users/Ksh{updatedUser.id}`, {
+    const response = await fetch(`${API_BASE_URL}/users/${updatedUser.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedUser),
@@ -63,7 +63,7 @@ export const updateUser = createAsyncThunk('users/updateUser', async (updatedUse
 // Thunk to delete a user
 export const deleteUser = createAsyncThunk('users/deleteUser', async (userId, { rejectWithValue }) => {
   try {
-    const response = await fetch(`Ksh{API_BASE_URL}/users/Ksh{userId}`, {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
