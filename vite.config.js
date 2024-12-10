@@ -7,5 +7,10 @@ export default defineConfig({
   css: {
     postcss: './postcss.config.js',  // Explicitly link to the PostCSS config
   },
+  build: {
+    rollupOptions: {
+      external: ['react-chartjs-2', 'chart.js'],  // Externalize react-chartjs-2 and chart.js
+    },
+  },
 });
 
