@@ -6,8 +6,7 @@ import toast from "react-hot-toast";
 import { FaApple, FaBeer, FaCarrot, FaCoffee, FaLaptop, FaPhone } from 'react-icons/fa';
 
 // Redux actions
-// import { fetchProducts, updateInventoryStock, removeProductFromInventory } from "../store/slices/inventorySlice";
-import { fetchProducts, updateProductById, removeProductFromInventory } from "../store/slices/inventorySlice";
+import { fetchProducts, updateInventoryStock, removeProductFromInventory } from "../store/slices/inventorySlice";
 import { addToCart, removeFromCart, updateQuantity, clearCart } from "../store/slices/cartSlice";
 import { recordSale, setTotalProfit, setFilteredProfit } from "../store/slices/salesSlice"; 
 
