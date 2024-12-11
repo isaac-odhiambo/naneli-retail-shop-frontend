@@ -34,9 +34,9 @@ export default defineConfig({
     postcss: './postcss.config.js',  // Explicitly link to the PostCSS config
   },
   build: {
-    outDir: 'dist',  // Specify the output directory (default is 'dist')
+    outDir: 'dist',  // Specify the output directory
     rollupOptions: {
-      external: allDependencies, // Externalize only dependencies (excluding devDependencies)
+      external: allDependencies.filter(dep => dep !== 'react' && dep !== 'react-dom'), // Exclude entry point and essential dependencies from externalization
     },
   },
   define: {
@@ -52,4 +52,5 @@ export default defineConfig({
     ),
   },
 });
+
 
