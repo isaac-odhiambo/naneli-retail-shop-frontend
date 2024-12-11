@@ -22,11 +22,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nanelishop</title>
 
-    <!-- Correct CDN Links for External Libraries (with type="module") -->
-    <script type="module" src="https://cdn.skypack.dev/react@18.2.0"></script>
-    <script type="module" src="https://cdn.skypack.dev/react-dom@18.2.0"></script>
-    <script type="module" src="https://cdn.skypack.dev/react-router-dom@6.28.0"></script>
+    <!-- React and React-DOM CDN (Using React 18 for compatibility) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+
+    <!-- External libraries (with correct version for React 18) -->
     <script type="module" src="https://cdn.skypack.dev/react-redux@9.1.2"></script>
+    <script type="module" src="https://cdn.skypack.dev/react-router-dom@6.28.0"></script>
     <script type="module" src="https://cdn.skypack.dev/react-bootstrap@2.10.6"></script>
     <script type="module" src="https://cdn.skypack.dev/chart.js@4.4.7"></script>
     <script type="module" src="https://cdn.skypack.dev/react-chartjs-2@5.2.0"></script>
@@ -37,8 +39,8 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Your app's entry point (e.g., main.jsx) -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+
 
