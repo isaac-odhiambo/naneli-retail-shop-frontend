@@ -24,10 +24,9 @@ const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.
 
 // Extract the dependencies (including devDependencies if necessary)
 const dependencies = Object.keys(packageJson.dependencies);
-const devDependencies = Object.keys(packageJson.devDependencies);
 
-// Combine both dependencies and devDependencies into one list for externalization
-const allDependencies = [...dependencies, ...devDependencies];
+// Combine only dependencies (not devDependencies) into one list for externalization
+const allDependencies = [...dependencies];
 
 export default defineConfig({
   plugins: [react()],
@@ -35,8 +34,9 @@ export default defineConfig({
     postcss: './postcss.config.js',  // Explicitly link to the PostCSS config
   },
   build: {
+    outDir: 'dist',  // Specify the output directory (default is 'dist')
     rollupOptions: {
-      external: allDependencies, // Externalize all dependencies and devDependencies
+      external: allDependencies, // Externalize only dependencies (excluding devDependencies)
     },
   },
   define: {
@@ -52,3 +52,4 @@ export default defineConfig({
     ),
   },
 });
+
