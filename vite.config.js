@@ -35,7 +35,7 @@ export default defineConfig({
     rollupOptions: {
       external: [
         ...dependencies, // Include all dependencies as external
-        'react', // You can explicitly ensure these libraries are external too if needed
+        'react', // Explicitly ensure these libraries are external too if needed
         'react-dom',
         'react-redux',
         'react-router-dom',
@@ -54,5 +54,18 @@ export default defineConfig({
       ],
     },
   },
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV), // Ensure environment variables are correctly handled
+  },
+  server: {
+    // This is only required for development if you want to proxy CDNs during local dev
+    proxy: {
+      '/react': 'https://cdn.skypack.dev/react',
+      '/react-dom': 'https://cdn.skypack.dev/react-dom',
+      '/react-redux': 'https://cdn.skypack.dev/react-redux',
+      '/react-router-dom': 'https://cdn.skypack.dev/react-router-dom',
+      '/chart.js': 'https://cdn.skypack.dev/chart.js',
+      // Add more libraries as needed
+    },
+  },
 });
-

@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,4 +11,32 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vite App</title>
+
+  <!-- Import React and ReactDOM from a CDN -->
+  <script type="module">
+    import React from 'https://cdn.skypack.dev/react';
+    import ReactDOM from 'https://cdn.skypack.dev/react-dom';
+    import { Chart } from 'https://cdn.skypack.dev/chart.js';
+    import { Line } from 'https://cdn.skypack.dev/react-chartjs-2';
+
+    window.React = React;  // Make React globally accessible
+    window.ReactDOM = ReactDOM;  // Make ReactDOM globally accessible
+    window.Chart = Chart;  // Make Chart.js globally accessible
+    window.Line = Line;  // Make React-Chartjs-2 globally accessible
+  </script>
+
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>
