@@ -2,7 +2,9 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Search, Plus, Minus, Trash2, CreditCard } from "lucide-react";
+
 import toast from "react-hot-toast";
+
 import { FaApple, FaBeer, FaCarrot, FaCoffee, FaLaptop, FaPhone } from 'react-icons/fa';
 
 // Redux actions
