@@ -13,20 +13,15 @@
 //     },
 //   },
 // });
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
 
-// Read the package.json file
+// Read package.json dependencies
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
-
-// Extract the dependencies (including devDependencies if necessary)
 const dependencies = Object.keys(packageJson.dependencies);
-const devDependencies = Object.keys(packageJson.devDependencies);
-
-// Combine both dependencies and devDependencies into one list for externalization
-const allDependencies = [...dependencies, ...devDependencies];
 
 export default defineConfig({
   plugins: [react()],
@@ -36,37 +31,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       external: [
-        ...allDependencies, // Externalize all dependencies and devDependencies
-        'react', // Explicitly ensure these libraries are external too if needed
-        'react-dom',
-        'react-redux',
-        'react-router-dom',
-        'react-table',
-        'react-icons',
-        'chart.js',
-        'react-chartjs-2',
-        'react-toastify',
-        'react-bootstrap',
-        'lucide-react', 
-        'reactstrap', 
-        'reselect',
-        'axios',
-        'cors',
-        'tailwindcss',
+        ...dependencies,  // Externalize all dependencies listed in package.json
       ],
     },
-    outDir: 'dist', // Make sure your output directory is set (default is 'dist')
-  },
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV), // Ensure environment variables are correctly handled
-  },
-  server: {
-    // Proxy CDN requests during local development
-    proxy: Object.fromEntries(
-      allDependencies.map(dep => [
-        `/${dep}`,
-        `https://cdn.skypack.dev/${dep}`,
-      ])
-    ),
   },
 });
